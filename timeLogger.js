@@ -1,10 +1,10 @@
-// read (or make) json file
-// "use strict";
-var d = new Date();
 
 const fs = require("fs");
+const notifier = require("node-notifier");
+const path = require("path");
 
-let rawdata = fs.readFileSync("./timelog.json");
+let d = new Date();
+let rawdata = fs.readFileSync(path.join(__dirname, "/timelog.json"));
 let data = JSON.parse(rawdata);
 
 function addTimestamp() {
@@ -26,15 +26,24 @@ function tallyHours() {
   }
   let hours =
     Math.round((data[d.toLocaleDateString()].minutes / 60) * 100) / 100;
-  return `${hours} Hours / ${data[d.toLocaleDateString()].minutes} Minutes`;
+    if (hours > 8) notify(`you did it! ${hours} hours completed.`, "go home!")
+  return `timelogger -> ${hours} Hours / ${data[d.toLocaleDateString()].minutes} Minutes`;
 }
 
 function writeData() {
   let outJSON = JSON.stringify(data, null, 2);
-  fs.writeFileSync("./timelog.json", outJSON);
+  fs.writeFileSync(path.join(__dirname, "/timelog.json"), outJSON);
+}
+
+function notify(title, message) {
+  notifier.notify({
+    title: title,
+    message: message,
+  });
 }
 
 setInterval(() => {
+  d = new Date();
   process.stdout.write("\033c");
   addTimestamp();
   console.log(tallyHours());
